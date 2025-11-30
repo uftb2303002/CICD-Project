@@ -1,0 +1,53 @@
+name: Python CI Pipeline
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+
+      - name: Create build artifact (ZIP)
+        run: |
+          mkdir build
+          cp -r calculator build/
+          zip -r calculator_build.zip build
+
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run tests
+        run: pytest -v
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: calculator-build
+          path: calculator_build.zip
+
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: calculator-build
+
+      - name: Simulated Deploy
+        env:
+          DEPLOY_API_KEY: ${{ secrets.DEPLOY_API_KEY }}
+        run: |
+          echo "Simulating deploy..."
+          echo "Using API KEY: ${DEPLOY_API_KEY}"
+          echo "Deploy successful (simulation)."
