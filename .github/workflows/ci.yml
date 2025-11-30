@@ -1,14 +1,14 @@
-# .github/workflows/python-ci.yml
+# .github/workflows/ci.yml
 
 name: Python CI Pipeline
 
 on:
   push:
     branches:
-      - main  # Or master
+      - main
   pull_request:
     branches:
-      - main  # Or master
+      - main
 
 jobs:
   build-test-deploy:
@@ -30,17 +30,20 @@ jobs:
         run: pip install pytest
 
       # --- TEST ---
-      # This step must run before the directory structure is modified by the build step.
+
       - name: Run tests
-        run: pytest -v
+        run: |
+          # FIX: Add the project root (where the 'calculator' package lives) to PYTHONPATH
+          export PYTHONPATH=$PWD:$PYTHONPATH
+          pytest -v
 
       # --- BUILD/ARTIFACT ---
 
       - name: Create build artifact (ZIP)
+        # Assuming you want to zip the entire 'calculator' package directory
         run: |
-          # Copy the necessary files/directories into a 'build' folder
           mkdir build
-          cp -r calculator.py build/  # Assuming it's just a single file
+          cp -r calculator build/
           zip -r calculator_build.zip build
 
       - name: Upload build artifact
@@ -58,10 +61,8 @@ jobs:
 
       - name: Simulated Deploy
         env:
-          # Note: The secret 'DEPLOY_API_KEY' must be configured in your GitHub repository settings.
           DEPLOY_API_KEY: ${{ secrets.DEPLOY_API_KEY }}
         run: |
           echo "Simulating deploy..."
-          echo "Artifact contents downloaded to: $(ls -R)"
           echo "Using API KEY: ${DEPLOY_API_KEY}"
           echo "Deploy successful (simulation)."
